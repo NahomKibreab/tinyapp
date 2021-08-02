@@ -18,6 +18,12 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.get("/urls/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  res.render("urls_show", { shortURL, longURL });
+});
+
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
