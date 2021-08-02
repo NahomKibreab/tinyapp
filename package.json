@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/NahomKibreab/tinyapp/issues"
   },
-  "homepage": "https://github.com/NahomKibreab/tinyapp#readme"
+  "homepage": "https://github.com/NahomKibreab/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
