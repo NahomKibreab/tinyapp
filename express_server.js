@@ -115,8 +115,8 @@ app.post("/register", (req, res) => {
   // check if email or password are empty
   // and also checks if email already exists in users object
   if (
-    req.body.email.length === 0 ||
-    req.body.password.length === 0 ||
+    req.body.email.trim().length === 0 ||
+    req.body.password.trim().length === 0 ||
     isEmailExist(req.body.email)
   ) {
     res.sendStatus(400);
@@ -124,8 +124,8 @@ app.post("/register", (req, res) => {
 
   const newUser = {
     id: userId,
-    email: req.body.email,
-    password: req.body.password,
+    email: req.body.email.trim(),
+    password: req.body.password.trim(),
   };
   console.log("users:", users);
   users[userId] = newUser;
