@@ -32,10 +32,20 @@ const users = {
   },
 };
 
-// return true if email already exists in user object
-const isEmailExist = (email) => {
+// return true if email & password already exists in user object
+// or it return true if email only exitsts in user object else return false
+const isExist = (email, password) => {
   for (const user in users) {
-    if (users[user].email === email) {
+    if (
+      email &&
+      password &&
+      users[user].email === email &&
+      users[user].password === password
+    ) {
+      return true;
+    }
+
+    if (users[user].email === email && password === undefined) {
       return true;
     }
   }
@@ -92,8 +102,25 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+app.get("/login", (req, res) => {
+  const user = users[req.cookies["user_id"]];
+  const templateVars = { user };
+
+  res.render("urls_login", templateVars);
+});
+
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
+  const email = req.body.email.trim();
+  const password = req.body.password.trim();
+
+  // checks if email exists in our object
+  if (!isExist(email, password)) {
+    res.sendStatus(403);
+  }
+
+  // finding the current object id using the email value
+  const id = Object.keys(users).find((key) => users[key].email === email);
+  res.cookie("user_id", id);
   res.redirect("/urls");
 });
 
@@ -117,7 +144,7 @@ app.post("/register", (req, res) => {
   if (
     req.body.email.trim().length === 0 ||
     req.body.password.trim().length === 0 ||
-    isEmailExist(req.body.email)
+    isExist(req.body.email)
   ) {
     res.sendStatus(400);
   }
@@ -132,13 +159,6 @@ app.post("/register", (req, res) => {
   res.cookie("user_id", userId);
 
   res.redirect("/urls");
-});
-
-app.get("/login", (req, res) => {
-  const user = users[req.cookies["user_id"]];
-  const templateVars = { user };
-
-  res.render("urls_login", templateVars);
 });
 
 app.listen(PORT, () => {
