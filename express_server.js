@@ -114,10 +114,13 @@ app.post("/register", (req, res) => {
   const userId = generateRandomString();
 
   // check if email or password are empty
-  if (req.body.email.length === 0 || req.body.password) {
-    res.status(400);
-    res.redirect("/register");
-    return;
+  // and also checks if email already exists in users object
+  if (
+    req.body.email.length === 0 ||
+    req.body.password.length === 0 ||
+    isEmailExist(req.body.email)
+  ) {
+    res.sendStatus(400);
   }
 
   const newUser = {
