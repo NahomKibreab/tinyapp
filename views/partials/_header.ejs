@@ -9,10 +9,20 @@
           <a class="nav-item nav-link" href="/urls">My URLs</a>
           <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
         </div>
-        <form class="d-flex" action="/login" method="POST">
-          <input class="form-control me-2" name="username" type="search" placeholder="Login" aria-label="Login">
-          <button class="btn btn-outline-dark ml-2" type="submit">Login</button>
-        </form>
+      <div class="d-flex">
+        <% if(username){ %>
+          <form class="d-flex" action="/logout" method="POST">
+            <p class="h4">Logged In As: <%= username %> </p class="t-5">
+            <button class="btn btn-outline-dark ml-2" type="submit">Logout</button>
+          </form>
+          <% } else { %>
+            <form class="d-flex" action="/login" method="POST">
+              <input class="form-control me-2" name="username" type="search" placeholder="Login" aria-label="Login">
+              <button class="btn btn-outline-dark ml-2" type="submit">Login</button>
+            </form>
+            <% } %> 
+          </div>
+        
     </div>
   </nav>
 </header>
