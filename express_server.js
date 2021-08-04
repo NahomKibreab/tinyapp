@@ -32,6 +32,16 @@ const users = {
   },
 };
 
+// return true if email already exists in user object
+const isEmailExist = (email) => {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -102,6 +112,14 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   const userId = generateRandomString();
+
+  // check if email or password are empty
+  if (req.body.email.length === 0 || req.body.password) {
+    res.status(400);
+    res.redirect("/register");
+    return;
+  }
+
   const newUser = {
     id: userId,
     email: req.body.email,
