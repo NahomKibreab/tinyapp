@@ -103,10 +103,9 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  console.log("users:", users);
   const user = users[req.cookies["user_id"]];
   const templateVars = { user };
-  console.log("templateVars", templateVars);
+
   res.render("urls_register", templateVars);
 });
 
@@ -133,6 +132,13 @@ app.post("/register", (req, res) => {
   res.cookie("user_id", userId);
 
   res.redirect("/urls");
+});
+
+app.get("/login", (req, res) => {
+  const user = users[req.cookies["user_id"]];
+  const templateVars = { user };
+
+  res.render("urls_login", templateVars);
 });
 
 app.listen(PORT, () => {
