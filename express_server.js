@@ -67,6 +67,23 @@ const isExist = (email, password) => {
   return false;
 };
 
+const getUserByEmail = (email, database) => {
+  if (!(email && database)) {
+    return null;
+  }
+
+  if (typeof email !== "string" || typeof database !== "object") {
+    return null;
+  }
+
+  for (const id in database) {
+    if (database[id].email === email) {
+      return database[id];
+    }
+  }
+  return "Email not found";
+};
+
 // if logged in redirect to /urls
 const redirectIfLogged = (req, res) => {
   if (Object.keys(users).includes(req.session["user_id"])) {
