@@ -1,13 +1,19 @@
 const express = require("express");
 const morgan = require("morgan");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 
 const app = express();
 const PORT = 8080; // default port 8080
 
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+// created tinyCookie secure session
+app.use(
+  cookieSession({
+    name: "tinyCookie",
+    keys: ["myPassword", "secondPassword"],
+  })
+);
 app.use(morgan("dev"));
 
 app.set("view engine", "ejs");
@@ -63,7 +69,7 @@ const isExist = (email, password) => {
 
 // if logged in redirect to /urls
 const redirectIfLogged = (req, res) => {
-  if (Object.keys(users).includes(req.cookies["user_id"])) {
+  if (Object.keys(users).includes(req.session["user_id"])) {
     return res.redirect("/urls");
   }
 };
@@ -104,7 +110,8 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const cookieUserID = req.cookies["user_id"];
+  const cookieUserID = req.session["user_id"];
+  console.log("Session Cookie", cookieUserID);
 
   // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
@@ -118,8 +125,8 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   // Accessible only if you logged in!
-  if (req.cookies["user_id"]) {
-    const user = users[req.cookies["user_id"]];
+  if (req.session["user_id"]) {
+    const user = users[req.session["user_id"]];
     const templateVars = { user };
     res.render("urls_new", templateVars);
     return;
@@ -128,10 +135,10 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  if (req.cookies["user_id"]) {
+  if (req.session["user_id"]) {
     const { longURL } = req.body;
     const shortURL = generateRandomString();
-    urlDatabase[shortURL] = { userID: req.cookies["user_id"], longURL };
+    urlDatabase[shortURL] = { userID: req.session["user_id"], longURL };
     return res.redirect(`/urls/${shortURL}`);
   }
   res.redirect("/urls");
@@ -139,7 +146,7 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const cookieUserID = req.cookies["user_id"];
+  const cookieUserID = req.session["user_id"];
 
   // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
@@ -157,7 +164,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const cookieUserID = req.cookies["user_id"];
+  const cookieUserID = req.session["user_id"];
 
   // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
@@ -167,7 +174,7 @@ app.post("/urls/:shortURL", (req, res) => {
   // checks if user have access to edit
   if (isShortURLExist(shortURL, cookieUserID)) {
     urlDatabase[shortURL].longURL = req.body.newURL;
-    urlDatabase[shortURL].userID = req.cookies["user_id"];
+    urlDatabase[shortURL].userID = req.session["user_id"];
     return res.redirect(`/urls/${shortURL}`);
   }
   unauthorized(res);
@@ -175,7 +182,7 @@ app.post("/urls/:shortURL", (req, res) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
-  const cookieUserID = req.cookies["user_id"];
+  const cookieUserID = req.session["user_id"];
 
   // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
@@ -201,7 +208,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const user = users[req.cookies["user_id"]];
+  const user = users[req.session["user_id"]];
   const templateVars = { user };
 
   // if logged in redirect to /urls
@@ -224,7 +231,9 @@ app.post("/login", (req, res) => {
   // finding the current object id using the email value
   const id = Object.keys(users).find((key) => users[key].email === email);
 
-  res.cookie("user_id", id);
+  // res.cookie("user_id", id);
+  // send back encrypted cookie to client
+  req.session["user_id"] = id;
   res.redirect("/urls");
 });
 
@@ -237,14 +246,14 @@ app.get("/register", (req, res) => {
   // if logged in redirect to /urls
   redirectIfLogged(req, res);
 
-  const user = users[req.cookies["user_id"]];
+  const user = users[req.session["user_id"]];
   const templateVars = { user };
 
   res.render("urls_register", templateVars);
 });
 
 app.post("/register", (req, res) => {
-  const userID = generateRandomString();
+  const id = generateRandomString();
   const email = req.body.email.trim();
   const password = req.body.password.trim();
 
@@ -260,12 +269,13 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   const newUser = {
-    id: userID,
+    id,
     email,
     password: hashedPassword,
   };
-  users[userID] = newUser;
-  res.cookie("user_id", userID);
+  users[id] = newUser;
+  // send back encrypted cookie to client
+  req.session["user_id"] = id;
 
   res.redirect("/urls");
 });
