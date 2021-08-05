@@ -54,7 +54,7 @@ const isExist = (email, password) => {
 };
 
 // if logged in redirect to /urls
-const checkCookie = (req, res) => {
+const redirectIfLogged = (req, res) => {
   if (req.cookies["user_id"]) {
     res.redirect("/urls");
     return;
@@ -72,9 +72,13 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const user = users[req.cookies["user_id"]];
-  const templateVars = { user };
-  res.render("urls_new", templateVars);
+  // Accessible only if you logged in!
+  if (req.cookies["user_id"]) {
+    const user = users[req.cookies["user_id"]];
+    const templateVars = { user };
+    res.render("urls_new", templateVars);
+  }
+  res.redirect("/urls");
 });
 
 app.post("/urls", (req, res) => {
@@ -116,7 +120,7 @@ app.get("/login", (req, res) => {
   const templateVars = { user };
 
   // if logged in redirect to /urls
-  checkCookie(req, res);
+  redirectIfLogged(req, res);
 
   res.render("urls_login", templateVars);
 });
@@ -145,7 +149,7 @@ app.post("/logout", (req, res) => {
 
 app.get("/register", (req, res) => {
   // if logged in redirect to /urls
-  checkCookie(req, res);
+  redirectIfLogged(req, res);
 
   const user = users[req.cookies["user_id"]];
   const templateVars = { user };
