@@ -18,6 +18,7 @@ const generateRandomString = () => {
 const urlDatabase = {
   b2xVn2: { userID: 1, longURL: "http://www.lighthouselabs.ca" },
   "9sm5xK": { userID: 1, longURL: "http://www.google.com" },
+  d34565: { userID: 2, longURL: "http://www.google.com" },
 };
 
 const users = {
@@ -61,20 +62,32 @@ const redirectIfLogged = (req, res) => {
   }
 };
 
+const urlsForUser = (id) => {
+  const usersURL = {};
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID.toString() === id) {
+      usersURL[url] = urlDatabase[url];
+    }
+  }
+  return usersURL;
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
 app.get("/urls", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  const cookieUserID = req.cookies["user_id"];
+  if (!users[cookieUserID]) {
     return res.status(403).render("urls_404", {
       error: "Please login or register to access this page!",
     });
   }
 
-  const user = users[req.cookies["user_id"]];
+  console.log(urlDatabase);
 
-  const templateVars = { urls: urlDatabase, user };
+  const user = users[cookieUserID];
+  const templateVars = { urls: urlsForUser(cookieUserID), user };
   res.render("urls_index", templateVars);
 });
 
