@@ -9,7 +9,7 @@
           <a class="nav-item nav-link" href="/urls">My URLs</a>
           <a class="nav-item nav-link" href="/urls/new" <%= typeof user === 'undefined' ? 'hidden' : null%> >Create New URL</a>
       </div>
-      <% if(user){ %>
+      <% if(typeof user !== 'undefined'){ %>
         <form class="d-flex" action="/logout" method="POST">
           <p class="h4 align-self-center" style="margin: 0 !important;">Logged In As: <%= user.email %> </p class="t-5">
           <button class="btn btn-outline-dark ml-2" type="submit">Logout</button>
