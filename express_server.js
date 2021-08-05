@@ -53,6 +53,14 @@ const isExist = (email, password) => {
   return false;
 };
 
+// if logged in redirect to /urls
+const checkCookie = (req, res) => {
+  if (req.cookies["user_id"]) {
+    res.redirect("/urls");
+    return;
+  }
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -107,6 +115,9 @@ app.get("/login", (req, res) => {
   const user = users[req.cookies["user_id"]];
   const templateVars = { user };
 
+  // if logged in redirect to /urls
+  checkCookie(req, res);
+
   res.render("urls_login", templateVars);
 });
 
@@ -133,6 +144,9 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+  // if logged in redirect to /urls
+  checkCookie(req, res);
+
   const user = users[req.cookies["user_id"]];
   const templateVars = { user };
 
@@ -149,11 +163,9 @@ app.post("/register", (req, res) => {
     req.body.password.trim().length === 0 ||
     isExist(req.body.email)
   ) {
-    res
-      .status(400)
-      .render("urls_register", {
-        error: "This email already exists or incorrect input!",
-      });
+    res.status(400).render("urls_register", {
+      error: "This email already exists or incorrect input!",
+    });
   }
 
   const newUser = {
@@ -165,6 +177,10 @@ app.post("/register", (req, res) => {
   users[userId] = newUser;
   res.cookie("user_id", userId);
 
+  res.redirect("/urls");
+});
+
+app.get("*", (req, res) => {
   res.redirect("/urls");
 });
 

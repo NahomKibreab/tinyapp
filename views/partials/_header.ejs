@@ -9,6 +9,7 @@
           <a class="nav-item nav-link" href="/urls">My URLs</a>
           <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
+      <%= console.log('typeof user', typeof user ) %> 
       <% if(typeof user !== 'undefined'){ %>
         <form class="d-flex" action="/logout" method="POST">
           <p class="h4 align-self-center" style="margin: 0 !important;">Logged In As: <%= user.email %> </p class="t-5">
