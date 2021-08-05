@@ -57,11 +57,11 @@ const isExist = (email, password) => {
 // if logged in redirect to /urls
 const redirectIfLogged = (req, res) => {
   if (Object.keys(users).includes(req.cookies["user_id"])) {
-    res.redirect("/urls");
-    return;
+    return res.redirect("/urls");
   }
 };
 
+// filters and return only urlDabase that includes the specific userID
 const urlsForUser = (id) => {
   const usersURL = {};
   for (const url in urlDatabase) {
@@ -70,6 +70,14 @@ const urlsForUser = (id) => {
     }
   }
   return usersURL;
+};
+
+// cross check if the user have permission to access the shortURL
+const isShortURLExist = (shortURL, id) => {
+  if (Object.keys(urlsForUser(id)).includes(shortURL)) {
+    return true;
+  }
+  return false;
 };
 
 app.get("/", (req, res) => {
@@ -114,10 +122,20 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL].longURL;
-  const user = users[req.cookies["user_id"]];
-  const templateVars = { shortURL, longURL, user };
-  res.render("urls_show", templateVars);
+  const cookieUserID = req.cookies["user_id"];
+  if (!users[cookieUserID]) {
+    return res.status(403).render("urls_404", {
+      error: "Please login or register to access this page!",
+    });
+  }
+
+  if (isShortURLExist(shortURL, cookieUserID)) {
+    const longURL = urlDatabase[shortURL].longURL;
+    const user = users[cookieUserID];
+    const templateVars = { shortURL, longURL, user };
+    return res.render("urls_show", templateVars);
+  }
+  res.status(403).render("urls_404", { error: "Error: Access Denied!" });
 });
 
 app.post("/urls/:shorURL", (req, res) => {
