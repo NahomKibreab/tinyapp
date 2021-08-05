@@ -16,8 +16,8 @@ const generateRandomString = () => {
 };
 
 const urlDatabase = {
-  b2xVn2: { userId: 1, longURL: "http://www.lighthouselabs.ca" },
-  "9sm5xK": { userId: 1, longURL: "http://www.google.com" },
+  b2xVn2: { userID: 1, longURL: "http://www.lighthouselabs.ca" },
+  "9sm5xK": { userID: 1, longURL: "http://www.google.com" },
 };
 
 const users = {
@@ -85,7 +85,7 @@ app.post("/urls", (req, res) => {
   if (req.cookies["user_id"]) {
     const { longURL } = req.body;
     const shortURL = generateRandomString();
-    urlDatabase[shortURL] = { userId: req.cookies["user_id"], longURL };
+    urlDatabase[shortURL] = { userID: req.cookies["user_id"], longURL };
     res.redirect(`/urls/${shortURL}`);
   }
   res.redirect("/urls");
@@ -102,7 +102,7 @@ app.get("/urls/:shortURL", (req, res) => {
 app.post("/urls/:shorURL", (req, res) => {
   const shortURL = req.params.shorURL;
   urlDatabase[shortURL].longURL = req.body.newURL;
-  urlDatabase[shortURL].userId = req.cookies["user_id"];
+  urlDatabase[shortURL].userID = req.cookies["user_id"];
   console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
@@ -115,6 +115,11 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
+  // checking if the shortURL does exist in urlDatabase
+  if (urlDatabase[req.params.shortURL] === undefined) {
+    res.status(404).render("urls_404");
+  }
+
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
@@ -162,7 +167,7 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const userId = generateRandomString();
+  const userID = generateRandomString();
 
   // check if email or password are empty
   // and also checks if email already exists in users object
@@ -177,13 +182,13 @@ app.post("/register", (req, res) => {
   }
 
   const newUser = {
-    id: userId,
+    id: userID,
     email: req.body.email.trim(),
     password: req.body.password.trim(),
   };
   console.log("users:", users);
-  users[userId] = newUser;
-  res.cookie("user_id", userId);
+  users[userID] = newUser;
+  res.cookie("user_id", userID);
 
   res.redirect("/urls");
 });
