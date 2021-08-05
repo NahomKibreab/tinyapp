@@ -10,6 +10,7 @@ app.use(morgan("dev"));
 
 app.set("view engine", "ejs");
 
+//
 const generateRandomString = () => {
   return Math.random().toString(36).substr(2, 6);
 };
@@ -115,7 +116,9 @@ app.post("/login", (req, res) => {
 
   // checks if email exists in our object
   if (!isExist(email, password)) {
-    res.sendStatus(403);
+    res
+      .status(403)
+      .render("urls_login", { error: "Email or Password is incorrect!" });
   }
 
   // finding the current object id using the email value
@@ -146,7 +149,11 @@ app.post("/register", (req, res) => {
     req.body.password.trim().length === 0 ||
     isExist(req.body.email)
   ) {
-    res.sendStatus(400);
+    res
+      .status(400)
+      .render("urls_register", {
+        error: "This email already exists or incorrect input!",
+      });
   }
 
   const newUser = {

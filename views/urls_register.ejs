@@ -15,7 +15,8 @@
     <form  action="/register" method="POST">
       <div class="mb-3">
         <label for="email" class="form-label">Email address</label>
-        <input type="email" class="form-control" name="email" id="email" >
+        <input type="email" class="form-control" name="email" id="email" aria-describedby="emailHelp">
+        <div id="emailHelp" class="form-text text-danger"><%= typeof error !== 'undefined' ? error : null %></div>
       </div>
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
