@@ -55,7 +55,7 @@ const isExist = (email, password) => {
 
 // if logged in redirect to /urls
 const redirectIfLogged = (req, res) => {
-  if (req.cookies["user_id"]) {
+  if (Object.keys(users).includes(req.cookies["user_id"])) {
     res.redirect("/urls");
     return;
   }
@@ -66,7 +66,14 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    return res.status(403).render("urls_404", {
+      error: "Please login or register to access this page!",
+    });
+  }
+
   const user = users[req.cookies["user_id"]];
+
   const templateVars = { urls: urlDatabase, user };
   res.render("urls_index", templateVars);
 });
@@ -77,6 +84,7 @@ app.get("/urls/new", (req, res) => {
     const user = users[req.cookies["user_id"]];
     const templateVars = { user };
     res.render("urls_new", templateVars);
+    return;
   }
   res.redirect("/urls");
 });
@@ -86,7 +94,7 @@ app.post("/urls", (req, res) => {
     const { longURL } = req.body;
     const shortURL = generateRandomString();
     urlDatabase[shortURL] = { userID: req.cookies["user_id"], longURL };
-    res.redirect(`/urls/${shortURL}`);
+    return res.redirect(`/urls/${shortURL}`);
   }
   res.redirect("/urls");
 });
@@ -103,7 +111,6 @@ app.post("/urls/:shorURL", (req, res) => {
   const shortURL = req.params.shorURL;
   urlDatabase[shortURL].longURL = req.body.newURL;
   urlDatabase[shortURL].userID = req.cookies["user_id"];
-  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -117,7 +124,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   // checking if the shortURL does exist in urlDatabase
   if (urlDatabase[req.params.shortURL] === undefined) {
-    res.status(404).render("urls_404");
+    return res.status(404).render("urls_404");
   }
 
   const longURL = urlDatabase[req.params.shortURL].longURL;
@@ -140,7 +147,7 @@ app.post("/login", (req, res) => {
 
   // checks if email exists in our object
   if (!isExist(email, password)) {
-    res
+    return res
       .status(403)
       .render("urls_login", { error: "Email or Password is incorrect!" });
   }
@@ -176,7 +183,7 @@ app.post("/register", (req, res) => {
     req.body.password.trim().length === 0 ||
     isExist(req.body.email)
   ) {
-    res.status(400).render("urls_register", {
+    return res.status(400).render("urls_register", {
       error: "This email already exists or incorrect input!",
     });
   }
@@ -186,7 +193,6 @@ app.post("/register", (req, res) => {
     email: req.body.email.trim(),
     password: req.body.password.trim(),
   };
-  console.log("users:", users);
   users[userID] = newUser;
   res.cookie("user_id", userID);
 
