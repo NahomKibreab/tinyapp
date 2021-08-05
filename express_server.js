@@ -26,25 +26,30 @@ const urlDatabase = {
 const users = {
   1: {
     id: "1",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    email: "a@a.com",
+    password: "$2b$10$2YCZMSaqizp4kc1STwSOvedWrOq36LRrEs/CqEV8ss1cRrAkzQ.ju", // 'pass' is the password before hashed
   },
   2: {
     id: "2",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
+    email: "b@b.com",
+    password: "$2b$10$2lLnqqe9isMgb4P6N892hu2.1CV1ZIHfKZh5aQyQscylPjV4bRObu", // 'pass2' is the password before hashed
   },
 };
 
-// return true if email & password already exists in user object
-// or it return true if email only exitsts in user object else return false
+// 1. Return true if email & password already exists in users object
+// 2. Checks if the email only exitsts in users object else return false
 const isExist = (email, password) => {
   for (const user in users) {
+    // hashed password stored in users
+    const hashedPassword = users[user].password;
+
+    // Verify if the user's email and password is not empty
+    // Also check if the password is the same with the hashPassword stored in users
     if (
       email &&
       password &&
       users[user].email === email &&
-      users[user].password === password
+      bcrypt.compareSync(password, hashedPassword)
     ) {
       return true;
     }
@@ -218,6 +223,7 @@ app.post("/login", (req, res) => {
 
   // finding the current object id using the email value
   const id = Object.keys(users).find((key) => users[key].email === email);
+
   res.cookie("user_id", id);
   res.redirect("/urls");
 });
