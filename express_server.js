@@ -10,7 +10,7 @@ app.use(morgan("dev"));
 
 app.set("view engine", "ejs");
 
-//
+// generate random alphanumeric numbers
 const generateRandomString = () => {
   return Math.random().toString(36).substr(2, 6);
 };
@@ -80,19 +80,29 @@ const isShortURLExist = (shortURL, id) => {
   return false;
 };
 
+// display error message if page not found
+const pageNotFound = (res) => {
+  return res.status(403).render("urls_404", {
+    error: "Please login / register to have access to this page!",
+  });
+};
+
+// dispaly access denied for unauthorized user
+const unauthorized = (res) => {
+  return res.status(403).render("urls_404", { error: "Error: Access Denied!" });
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
 app.get("/urls", (req, res) => {
   const cookieUserID = req.cookies["user_id"];
-  if (!users[cookieUserID]) {
-    return res.status(403).render("urls_404", {
-      error: "Please login / register to have access to this page!",
-    });
-  }
 
-  console.log(urlDatabase);
+  // redirect to urls_404 page if not logged in
+  if (!users[cookieUserID]) {
+    pageNotFound(res);
+  }
 
   const user = users[cookieUserID];
   const templateVars = { urls: urlsForUser(cookieUserID), user };
@@ -123,10 +133,10 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const cookieUserID = req.cookies["user_id"];
+
+  // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
-    return res.status(403).render("urls_404", {
-      error: "Please login / register to have access to this page!",
-    });
+    pageNotFound(res);
   }
 
   if (isShortURLExist(shortURL, cookieUserID)) {
@@ -135,33 +145,34 @@ app.get("/urls/:shortURL", (req, res) => {
     const templateVars = { shortURL, longURL, user };
     return res.render("urls_show", templateVars);
   }
-  res.status(403).render("urls_404", { error: "Error: Access Denied!" });
+  unauthorized(res);
 });
 
-app.post("/urls/:shorURL", (req, res) => {
+app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const cookieUserID = req.cookies["user_id"];
+
+  // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
-    return res.status(403).render("urls_404", {
-      error: "Please login / register to have access to this page!",
-    });
+    pageNotFound(res);
   }
 
+  // checks if user have access to edit
   if (isShortURLExist(shortURL, cookieUserID)) {
     urlDatabase[shortURL].longURL = req.body.newURL;
     urlDatabase[shortURL].userID = req.cookies["user_id"];
     return res.redirect(`/urls/${shortURL}`);
   }
-  res.status(403).render("urls_404", { error: "Error: Access Denied!" });
+  unauthorized(res);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   const cookieUserID = req.cookies["user_id"];
+
+  // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
-    return res.status(403).render("urls_404", {
-      error: "Please login / register to have access to this page!",
-    });
+    pageNotFound(res);
   }
 
   if (isShortURLExist(shortURL, cookieUserID)) {
@@ -169,7 +180,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     return res.redirect("/urls");
   }
 
-  res.status(403).render("urls_404", { error: "Error: Access Denied!" });
+  unauthorized(res);
 });
 
 app.get("/u/:shortURL", (req, res) => {
