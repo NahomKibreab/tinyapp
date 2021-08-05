@@ -44,23 +44,19 @@ const users = {
 
 // 1. Return true if email & password already exists in users object
 // 2. Checks if the email only exitsts in users object else return false
-const isExist = (email, password) => {
-  for (const user in users) {
+const checkEmailAndPassword = (email, password, usersDB) => {
+  for (const user in usersDB) {
     // hashed password stored in users
-    const hashedPassword = users[user].password;
+    const hashedPassword = usersDB[user].password;
 
     // Verify if the user's email and password is not empty
     // Also check if the password is the same with the hashPassword stored in users
     if (
       email &&
       password &&
-      users[user].email === email &&
+      usersDB[user].email === email &&
       bcrypt.compareSync(password, hashedPassword)
     ) {
-      return true;
-    }
-
-    if (users[user].email === email && password === undefined) {
       return true;
     }
   }
@@ -242,7 +238,7 @@ app.post("/login", (req, res) => {
   const password = req.body.password.trim();
 
   // checks if email exists in our object
-  if (!isExist(email, password)) {
+  if (!checkEmailAndPassword(email, password, users)) {
     return res
       .status(403)
       .render("urls_login", { error: "Email or Password is incorrect!" });
@@ -279,7 +275,11 @@ app.post("/register", (req, res) => {
 
   // check if email or password are empty
   // and also checks if email already exists in users object
-  if (email.length === 0 || password.length === 0 || isExist(req.body.email)) {
+  if (
+    email.length === 0 ||
+    password.length === 0 ||
+    getUserByEmail(email, users)
+  ) {
     return res.status(400).render("urls_register", {
       error: "This email already exists or incorrect input!",
     });
