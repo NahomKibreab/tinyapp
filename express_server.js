@@ -1,6 +1,8 @@
 const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcrypt");
+
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -237,23 +239,24 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   const userID = generateRandomString();
+  const email = req.body.email.trim();
+  const password = req.body.password.trim();
 
   // check if email or password are empty
   // and also checks if email already exists in users object
-  if (
-    req.body.email.trim().length === 0 ||
-    req.body.password.trim().length === 0 ||
-    isExist(req.body.email)
-  ) {
+  if (email.length === 0 || password.length === 0 || isExist(req.body.email)) {
     return res.status(400).render("urls_register", {
       error: "This email already exists or incorrect input!",
     });
   }
 
+  // Password converted to hash value
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
   const newUser = {
     id: userID,
-    email: req.body.email.trim(),
-    password: req.body.password.trim(),
+    email,
+    password: hashedPassword,
   };
   users[userID] = newUser;
   res.cookie("user_id", userID);
