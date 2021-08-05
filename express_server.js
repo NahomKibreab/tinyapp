@@ -88,7 +88,7 @@ app.get("/urls", (req, res) => {
   const cookieUserID = req.cookies["user_id"];
   if (!users[cookieUserID]) {
     return res.status(403).render("urls_404", {
-      error: "Please login or register to access this page!",
+      error: "Please login / register to have access to this page!",
     });
   }
 
@@ -125,7 +125,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const cookieUserID = req.cookies["user_id"];
   if (!users[cookieUserID]) {
     return res.status(403).render("urls_404", {
-      error: "Please login or register to access this page!",
+      error: "Please login / register to have access to this page!",
     });
   }
 
@@ -139,17 +139,37 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shorURL", (req, res) => {
-  const shortURL = req.params.shorURL;
-  urlDatabase[shortURL].longURL = req.body.newURL;
-  urlDatabase[shortURL].userID = req.cookies["user_id"];
-  res.redirect(`/urls/${shortURL}`);
+  const shortURL = req.params.shortURL;
+  const cookieUserID = req.cookies["user_id"];
+  if (!users[cookieUserID]) {
+    return res.status(403).render("urls_404", {
+      error: "Please login / register to have access to this page!",
+    });
+  }
+
+  if (isShortURLExist(shortURL, cookieUserID)) {
+    urlDatabase[shortURL].longURL = req.body.newURL;
+    urlDatabase[shortURL].userID = req.cookies["user_id"];
+    return res.redirect(`/urls/${shortURL}`);
+  }
+  res.status(403).render("urls_404", { error: "Error: Access Denied!" });
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const id = req.params.shortURL;
-  delete urlDatabase[id];
+  const shortURL = req.params.shortURL;
+  const cookieUserID = req.cookies["user_id"];
+  if (!users[cookieUserID]) {
+    return res.status(403).render("urls_404", {
+      error: "Please login / register to have access to this page!",
+    });
+  }
 
-  res.redirect("/urls");
+  if (isShortURLExist(shortURL, cookieUserID)) {
+    delete urlDatabase[shortURL];
+    return res.redirect("/urls");
+  }
+
+  res.status(403).render("urls_404", { error: "Error: Access Denied!" });
 });
 
 app.get("/u/:shortURL", (req, res) => {
