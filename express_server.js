@@ -94,15 +94,19 @@ const isShortURLExist = (shortURL, id) => {
 };
 
 // display error message if page not found
-const pageNotFound = (res) => {
+const pageNotFound = (req, res) => {
   return res.status(403).render("urls_404", {
     error: "Please login / register to have access to this page!",
+    user: users[req.session["user_id"]],
   });
 };
 
 // dispaly access denied for unauthorized user
-const unauthorized = (res) => {
-  return res.status(403).render("urls_404", { error: "Error: Access Denied!" });
+const unauthorized = (req, res) => {
+  return res.status(403).render("urls_404", {
+    error: "Error: Access Denied!",
+    user: users[req.session["user_id"]],
+  });
 };
 
 app.get("/", (req, res) => {
@@ -111,11 +115,10 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const cookieUserID = req.session["user_id"];
-  console.log("Session Cookie", cookieUserID);
 
   // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
-    pageNotFound(res);
+    pageNotFound(req, res);
   }
 
   const user = users[cookieUserID];
@@ -150,7 +153,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
   // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
-    pageNotFound(res);
+    pageNotFound(req, res);
   }
 
   if (isShortURLExist(shortURL, cookieUserID)) {
@@ -159,7 +162,7 @@ app.get("/urls/:shortURL", (req, res) => {
     const templateVars = { shortURL, longURL, user };
     return res.render("urls_show", templateVars);
   }
-  unauthorized(res);
+  unauthorized(req, res);
 });
 
 app.post("/urls/:shortURL", (req, res) => {
@@ -168,7 +171,7 @@ app.post("/urls/:shortURL", (req, res) => {
 
   // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
-    pageNotFound(res);
+    pageNotFound(req, res);
   }
 
   // checks if user have access to edit
@@ -177,7 +180,7 @@ app.post("/urls/:shortURL", (req, res) => {
     urlDatabase[shortURL].userID = req.session["user_id"];
     return res.redirect(`/urls/${shortURL}`);
   }
-  unauthorized(res);
+  unauthorized(req, res);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -186,7 +189,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
   // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
-    pageNotFound(res);
+    pageNotFound(req, res);
   }
 
   if (isShortURLExist(shortURL, cookieUserID)) {
@@ -194,7 +197,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     return res.redirect("/urls");
   }
 
-  unauthorized(res);
+  unauthorized(req, res);
 });
 
 app.get("/u/:shortURL", (req, res) => {
