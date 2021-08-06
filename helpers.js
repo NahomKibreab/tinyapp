@@ -3,11 +3,11 @@ const bcrypt = require("bcrypt");
 // Return a user object, search by email
 const getUserByEmail = (email, database) => {
   if (!(email && database)) {
-    return null;
+    return;
   }
 
   if (typeof email !== "string" || typeof database !== "object") {
-    return null;
+    return;
   }
 
   for (const id in database) {
@@ -15,7 +15,6 @@ const getUserByEmail = (email, database) => {
       return database[id];
     }
   }
-  return null;
 };
 
 // Return true if email & password already exists in users object
