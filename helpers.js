@@ -66,7 +66,7 @@ const isLoggedIn = (cookieID, database) => {
 const urlsForUser = (id, urlDB) => {
   const usersURL = {};
   for (const url in urlDB) {
-    if (urlDB[url].userID.toString() === id) {
+    if (urlDB[url].userID.toString() === id.toString()) {
       usersURL[url] = urlDB[url];
     }
   }
@@ -105,6 +105,7 @@ const generateRandomString = () => {
 module.exports = {
   getUserByEmail,
   checkEmailAndPassword,
+  getUserById,
   isLoggedIn,
   urlsForUser,
   isShortURLExist,
