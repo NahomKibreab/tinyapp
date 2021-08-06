@@ -17,6 +17,12 @@ TinyApp is a full stack web application built with Node and Express that allows 
 - body-parser
 - cookie-session
 
+## Development Dependencies
+
+- Moch & Chai (Unit Tests)
+- Morgan (HTTP request logger)
+- Nodemon (Auto server starter)
+
 ## Getting Started
 
 - Install all dependencies (using the `npm install` command).
