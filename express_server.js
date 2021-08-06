@@ -3,6 +3,18 @@ const morgan = require("morgan");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 
+// External helper function
+const {
+  getUserByEmail,
+  checkEmailAndPassword,
+  isLoggedIn,
+  urlsForUser,
+  isShortURLExist,
+  pageNotFound,
+  unauthorized,
+  generateRandomString,
+} = require("./helpers");
+
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -17,11 +29,6 @@ app.use(
 app.use(morgan("dev"));
 
 app.set("view engine", "ejs");
-
-// generate random alphanumeric numbers
-const generateRandomString = () => {
-  return Math.random().toString(36).substr(2, 6);
-};
 
 const urlDatabase = {
   b2xVn2: { userID: 1, longURL: "http://www.lighthouselabs.ca" },
@@ -40,110 +47,6 @@ const users = {
     email: "b@b.com",
     password: "$2b$10$2lLnqqe9isMgb4P6N892hu2.1CV1ZIHfKZh5aQyQscylPjV4bRObu", // 'pass2' is the password before hashed
   },
-};
-
-// 1. Return true if email & password already exists in users object
-// 2. Checks if the email only exitsts in users object else return false
-const checkEmailAndPassword = (email, password, usersDB) => {
-  for (const user in usersDB) {
-    // hashed password stored in users
-    const hashedPassword = usersDB[user].password;
-
-    // Verify if the user's email and password is not empty
-    // Also check if the password is the same with the hashPassword stored in users
-    if (
-      email &&
-      password &&
-      usersDB[user].email === email &&
-      bcrypt.compareSync(password, hashedPassword)
-    ) {
-      return true;
-    }
-  }
-  return false;
-};
-
-const getUserByEmail = (email, database) => {
-  if (!(email && database)) {
-    return null;
-  }
-
-  if (typeof email !== "string" || typeof database !== "object") {
-    return null;
-  }
-
-  for (const id in database) {
-    if (database[id].email === email) {
-      return database[id];
-    }
-  }
-  return null;
-};
-
-// if logged in redirect to /urls
-// const redirectIfLogged = (req, res) => {
-//   if (Object.keys(users).includes(req.session["user_id"])) {
-//     return res.redirect("/urls");
-//   }
-// };
-
-const isLoggedIn = (cookieID, database) => {
-  if (getUserById(cookieID, database)) {
-    return true;
-  }
-  return false;
-};
-
-const getUserById = (id, database) => {
-  if (!(id && database)) {
-    return null;
-  }
-
-  if (typeof id !== "string" || typeof database !== "object") {
-    return null;
-  }
-
-  for (const userID in database) {
-    if (database[userID].id === id) {
-      return database[userID];
-    }
-  }
-  return null;
-};
-
-// filters and return only urlDabase that includes the specific userID
-const urlsForUser = (id, urlDB) => {
-  const usersURL = {};
-  for (const url in urlDB) {
-    if (urlDB[url].userID.toString() === id) {
-      usersURL[url] = urlDB[url];
-    }
-  }
-  return usersURL;
-};
-
-// cross check if the user have permission to access the shortURL
-const isShortURLExist = (shortURL, id, urlDB) => {
-  if (Object.keys(urlsForUser(id, urlDB)).includes(shortURL)) {
-    return true;
-  }
-  return false;
-};
-
-// display error message if page not found
-const pageNotFound = (req, res, usersDB) => {
-  return res.status(403).render("urls_404", {
-    error: "Please login / register to have access to this page!",
-    user: usersDB[req.session["user_id"]],
-  });
-};
-
-// dispaly access denied for unauthorized user
-const unauthorized = (req, res, usersDB) => {
-  return res.status(403).render("urls_404", {
-    error: "Error: Access Denied!",
-    user: usersDB[req.session["user_id"]],
-  });
 };
 
 app.get("/", (req, res) => {
@@ -252,7 +155,6 @@ app.get("/login", (req, res) => {
   const templateVars = { user };
 
   // if logged in redirect to /urls
-  // redirectIfLogged(req, res);
   if (isLoggedIn(req.session["user_id"], users)) {
     return res.redirect("/urls");
   }
@@ -272,10 +174,8 @@ app.post("/login", (req, res) => {
   }
 
   // finding the current object id using the email value
-  // const id = Object.keys(users).find((key) => users[key].email === email);
   const id = getUserByEmail(email, users).id;
 
-  // res.cookie("user_id", id);
   // send back encrypted cookie to client
   req.session["user_id"] = id;
   res.redirect("/urls");
@@ -288,7 +188,6 @@ app.post("/logout", (req, res) => {
 
 app.get("/register", (req, res) => {
   // if logged in redirect to /urls
-  // redirectIfLogged(req, res);
   if (isLoggedIn(req.session["user_id"], users)) {
     return res.redirect("/urls");
   }
