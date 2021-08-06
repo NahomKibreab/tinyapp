@@ -49,6 +49,7 @@ const users = {
   },
 };
 
+// HOME DIRECTORY
 app.get("/", (req, res) => {
   // if logged in redirect to /urls
   if (isLoggedIn(req.session["user_id"], users)) {
@@ -57,6 +58,7 @@ app.get("/", (req, res) => {
   res.redirect("/login");
 });
 
+// DISPLAY ALL URLs LISTS
 app.get("/urls", (req, res) => {
   const cookieUserID = req.session["user_id"];
 
@@ -70,6 +72,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// NEW FORM TO CREATE SHORT URL
 app.get("/urls/new", (req, res) => {
   // Accessible only if you logged in!
   if (isLoggedIn(req.session["user_id"], users)) {
@@ -80,6 +83,7 @@ app.get("/urls/new", (req, res) => {
   res.redirect("/login");
 });
 
+// CREATE NEW SHORT URL
 app.post("/urls", (req, res) => {
   if (req.session["user_id"]) {
     const { longURL } = req.body;
@@ -90,6 +94,7 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls");
 });
 
+// SHOW URL BY ID
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const cookieUserID = req.session["user_id"];
@@ -108,6 +113,7 @@ app.get("/urls/:shortURL", (req, res) => {
   unauthorized(req, res, users);
 });
 
+// UPDATE URL BY ID
 app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const cookieUserID = req.session["user_id"];
@@ -121,7 +127,7 @@ app.post("/urls/:shortURL", (req, res) => {
   if (isShortURLExist(shortURL, cookieUserID, urlDatabase)) {
     urlDatabase[shortURL].longURL = req.body.newURL;
     urlDatabase[shortURL].userID = req.session["user_id"];
-    return res.redirect(`/urls/${shortURL}`);
+    return res.redirect("/urls");
   }
   unauthorized(req, res, users);
 });
@@ -135,11 +141,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     pageNotFound(req, res, users);
   }
 
+  // Check if the user own the URL before it deleting
   if (isShortURLExist(shortURL, cookieUserID, urlDatabase)) {
     delete urlDatabase[shortURL];
     return res.redirect("/urls");
   }
 
+  // Check if unauthorized person try to access
   unauthorized(req, res, users);
 });
 
@@ -171,9 +179,9 @@ app.post("/login", (req, res) => {
 
   // checks if email exists in our object
   if (!checkEmailAndPassword(email, password, users)) {
-    return res
-      .status(403)
-      .render("urls_login", { error: "Email or Password is incorrect!" });
+    return res.status(403).render("urls_login", {
+      error: "Email or Password is incorrect!",
+    });
   }
 
   // finding the current object id using the email value
