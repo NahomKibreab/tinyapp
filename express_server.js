@@ -62,7 +62,7 @@ app.get("/urls", (req, res) => {
 
   // redirect to urls_404 page if not logged in
   if (!users[cookieUserID]) {
-    pageNotFound(req, res, users);
+    unauthorized(req, res, users, "Please login / Register to have access.");
   }
 
   const user = users[cookieUserID];
@@ -146,7 +146,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   // checking if the shortURL does exist in urlDatabase
   if (urlDatabase[req.params.shortURL] === undefined) {
-    return res.status(404).render("urls_404");
+    return pageNotFound(req, res, users);
   }
 
   const longURL = urlDatabase[req.params.shortURL].longURL;

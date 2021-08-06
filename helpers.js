@@ -83,16 +83,16 @@ const isShortURLExist = (shortURL, id, urlDB) => {
 
 // display error message if page not found
 const pageNotFound = (req, res, usersDB) => {
-  return res.status(403).render("urls_404", {
-    error: "Please login / register to have access to this page!",
+  return res.status(404).render("urls_404", {
+    error: "Page not found!",
     user: usersDB[req.session["user_id"]],
   });
 };
 
 // dispaly access denied for unauthorized user
-const unauthorized = (req, res, usersDB) => {
+const unauthorized = (req, res, usersDB, errorMessage) => {
   return res.status(403).render("urls_404", {
-    error: "Error: Access Denied!",
+    error: !errorMessage ? "Access Denied!" : errorMessage,
     user: usersDB[req.session["user_id"]],
   });
 };
