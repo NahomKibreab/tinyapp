@@ -50,7 +50,11 @@ const users = {
 };
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  // if logged in redirect to /urls
+  if (isLoggedIn(req.session["user_id"], users)) {
+    return res.redirect("/urls");
+  }
+  res.redirect("/login");
 });
 
 app.get("/urls", (req, res) => {
@@ -68,13 +72,12 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   // Accessible only if you logged in!
-  if (req.session["user_id"]) {
+  if (isLoggedIn(req.session["user_id"], users)) {
     const user = users[req.session["user_id"]];
     const templateVars = { user };
-    res.render("urls_new", templateVars);
-    return;
+    return res.render("urls_new", templateVars);
   }
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 app.post("/urls", (req, res) => {
