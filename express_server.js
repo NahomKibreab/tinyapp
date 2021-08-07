@@ -99,8 +99,13 @@ app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const cookieUserID = req.session["user_id"];
 
-  // redirect to urls_404 page if not logged in
-  if (!users[cookieUserID]) {
+  // redirect to urls_404 page if not logged in but the shortURL exist
+  if (!users[cookieUserID] && urlDatabase[shortURL]) {
+    unauthorized(req, res, users);
+  }
+
+  // redirect to urls_404 page if shortURL doesn't exist
+  if (!urlDatabase[shortURL]) {
     pageNotFound(req, res, users);
   }
 
@@ -129,6 +134,8 @@ app.post("/urls/:shortURL", (req, res) => {
     urlDatabase[shortURL].userID = req.session["user_id"];
     return res.redirect("/urls");
   }
+
+  // check if user try to access others shortURL address
   unauthorized(req, res, users);
 });
 
